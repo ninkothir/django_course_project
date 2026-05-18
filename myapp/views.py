@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 
 from .models import Task, SubTask
 from .serializers import TaskSerializer, SubTaskSerializer
+from django.db.models.functions import ExtractWeekDay
+from rest_framework.pagination import PageNumberPagination
 
 
 def hello(request):
@@ -116,3 +118,21 @@ class SubTaskDetailUpdateDeleteView(APIView):
 
         subtask.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TaskPagination(PageNumberPagination):
+        page_size = 5
+
+class TaskFilterView(APIView, TaskPagination):
+        def get(self, request):
+            tasks = Task.objects.all().order_by('-deadline')
+
+            weekday = request.query_params.get('weekday')
+            if weekday:
+                tasks = tasks.annotate(
+                    week_day=ExtractWeekDay('deadline')
+                ).filter(week_day=weekday)
+
+            results = self.paginate_queryset(tasks, request, view=self)
+            serializer = TaskSerializer(results, many=True)
+
+            return self.get_paginated_response(serializer.data)
