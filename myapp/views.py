@@ -7,12 +7,14 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.views import APIView
 
-from .models import Task, SubTask
-from .serializers import TaskSerializer, SubTaskSerializer
+from .models import Task, SubTask, Category
+from .serializers import TaskSerializer, SubTaskSerializer, CategoryCreateSerializer
 from django.db.models.functions import ExtractWeekDay
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework import filters
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 def hello(request):
@@ -160,3 +162,17 @@ class SubTaskListCreateGenericView(ListCreateAPIView):
 class SubTaskDetailGenericView(RetrieveUpdateDestroyAPIView):
             queryset = SubTask.objects.all()
             serializer_class = SubTaskSerializer
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.filter(is_deleted=False)
+    serializer_class = CategoryCreateSerializer
+
+    @action(detail=True, methods=['get'])
+    def count_tasks(self, request, pk=None):
+        category = self.get_object()
+        count = category.task_set.count()
+
+        return Response({
+            "category": category.name,
+            "tasks_count": count
+        })

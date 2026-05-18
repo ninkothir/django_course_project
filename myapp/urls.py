@@ -1,4 +1,6 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
+
 from .views import (
     hello,
     create_task,
@@ -12,10 +14,15 @@ from .views import (
     TaskDetailGenericView,
     SubTaskListCreateGenericView,
     SubTaskDetailGenericView,
+    CategoryViewSet,
 )
+
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('', hello, name='hello'),
+
     path('create-task/', create_task, name='create_task'),
     path('tasks/', task_list, name='task_list'),
     path('tasks/<int:pk>/', task_detail, name='task_detail'),
@@ -31,4 +38,4 @@ urlpatterns = [
 
     path('generic/subtasks/', SubTaskListCreateGenericView.as_view(), name='generic-subtask-list-create'),
     path('generic/subtasks/<int:pk>/', SubTaskDetailGenericView.as_view(), name='generic-subtask-detail'),
-]
+] + router.urls
