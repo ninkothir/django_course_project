@@ -11,6 +11,8 @@ from .models import Task, SubTask
 from .serializers import TaskSerializer, SubTaskSerializer
 from django.db.models.functions import ExtractWeekDay
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework import filters
 
 
 def hello(request):
@@ -136,3 +138,25 @@ class TaskFilterView(APIView, TaskPagination):
             serializer = TaskSerializer(results, many=True)
 
             return self.get_paginated_response(serializer.data)
+
+class TaskListCreateGenericView(ListCreateAPIView):
+            queryset = Task.objects.all()
+            serializer_class = TaskSerializer
+            filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+            search_fields = ['title', 'description']
+            ordering_fields = ['created_at', 'deadline', 'status']
+
+class TaskDetailGenericView(RetrieveUpdateDestroyAPIView):
+            queryset = Task.objects.all()
+            serializer_class = TaskSerializer
+
+class SubTaskListCreateGenericView(ListCreateAPIView):
+            queryset = SubTask.objects.all()
+            serializer_class = SubTaskSerializer
+            filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+            search_fields = ['title', 'description']
+            ordering_fields = ['created_at', 'deadline', 'status']
+
+class SubTaskDetailGenericView(RetrieveUpdateDestroyAPIView):
+            queryset = SubTask.objects.all()
+            serializer_class = SubTaskSerializer
